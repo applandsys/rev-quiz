@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       REW QUIZZ
  * Description:       Step-by-step quizzes with categories in the permalink, per-quiz instruction text, a social traffic-source filter (cloaking) and Ad Inserter style ad blocks, OneSignal and custom code.
- * Version:           1.4.1
+ * Version:           1.4.3
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            REW QUIZZ
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RQ_VERSION', '1.4.1' );
+define( 'RQ_VERSION', '1.4.3' );
 define( 'RQ_FILE', __FILE__ );
 define( 'RQ_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RQ_URL', plugin_dir_url( __FILE__ ) );

@@ -47,6 +47,7 @@ jQuery(function ($) {
 		var isNumbered = numbered.indexOf(value) !== -1;
 		$panel.find('.rq-ai-numbers, .rq-ai-numbers-help').prop('hidden', !isNumbered);
 		$panel.find('.rq-ai-popup').prop('hidden', value !== 'popup');
+		$panel.find('.rq-ai-popunder').prop('hidden', value !== 'popunder');
 		var labels = {
 			before_paragraph: 'Paragraphs', after_paragraph: 'Paragraphs',
 			before_image: 'Images', after_image: 'Images',

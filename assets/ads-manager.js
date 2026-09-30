@@ -15,8 +15,9 @@
 
     // Popup blocks keep their code in a <template> so ad scripts run only once the popup is visible.
     function runCode(template, target) {
-        target.appendChild(template.content.cloneNode(true));
-        target.querySelectorAll('script').forEach(function (old) {
+        // Scripts are swapped for fresh copies before insertion so each runs exactly once.
+        var code = template.content.cloneNode(true);
+        Array.prototype.slice.call(code.querySelectorAll('script')).forEach(function (old) {
             var script = document.createElement('script');
             Array.prototype.forEach.call(old.attributes, function (attr) {
                 script.setAttribute(attr.name, attr.value);
@@ -24,6 +25,7 @@
             script.text = old.text;
             old.parentNode.replaceChild(script, old);
         });
+        target.appendChild(code);
     }
 
     function setupPopups() {
@@ -60,6 +62,62 @@
                     }
                 }, 8000);
             }, delay);
+        });
+    }
+
+    function popunderDue(key, hours) {
+        if (!hours) return true;
+        try {
+            var last = Number(window.localStorage.getItem(key)) || 0;
+            return Date.now() - last > hours * 3600000;
+        } catch (error) {
+            return true;
+        }
+    }
+
+    function popunderShown(key) {
+        try {
+            window.localStorage.setItem(key, String(Date.now()));
+        } catch (error) {}
+    }
+
+    function openBehind(url) {
+        var win = window.open(url, '_blank');
+        if (!win) return false;
+        try {
+            win.blur();
+            window.focus();
+        } catch (error) {}
+        return true;
+    }
+
+    function setupPopunders() {
+        document.querySelectorAll('template[data-rq-popunder]').forEach(function (template) {
+            var key = 'rq_popunder_' + template.getAttribute('data-rq-popunder');
+            var hours = Number(template.getAttribute('data-hours')) || 0;
+            var click = Number(template.getAttribute('data-click')) || 0;
+            var url = template.getAttribute('data-url');
+            if (!popunderDue(key, hours)) return;
+
+            function fire() {
+                popunderShown(key);
+                if (url) return openBehind(url);
+                runCode(template, document.body);
+                return true;
+            }
+
+            if (!click && !url) {
+                fire();
+                return;
+            }
+            var clicks = 0;
+            // Capture phase, so it also counts clicks on quiz options that navigate away.
+            document.addEventListener('click', function onClick() {
+                clicks++;
+                if (clicks < Math.max(1, click)) return;
+                document.removeEventListener('click', onClick, true);
+                fire();
+            }, true);
         });
     }
 
@@ -149,8 +207,12 @@
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupPopups);
+        document.addEventListener('DOMContentLoaded', function () {
+            setupPopups();
+            setupPopunders();
+        });
     } else {
         setupPopups();
+        setupPopunders();
     }
 }(window, document));

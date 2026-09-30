@@ -1,7 +1,7 @@
 === REW QUIZZ ===
 Requires at least: 6.0
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.4.3
 License: GPLv2 or later
 
 Step-by-step quizzes with the category in the permalink, instruction text on every page, a social traffic-source filter and Ad Inserter style ad blocks.
@@ -17,7 +17,7 @@ Step-by-step quizzes with the category in the permalink, instruction text on eve
   Allowed visitors are remembered with a signed cookie so later steps keep working.
 * Ad blocks (REW QUIZZ > Ad blocks), modelled on the Ad Inserter plugin: 16 code blocks, each with
   - an insertion position: above header, before/after post, before/after content, before/after paragraph N,
-    before/after image N, before/after excerpt, between posts, before comments, footer, popup, plus quiz positions
+    before/after image N, before/after excerpt, between posts, before comments, footer, popup, popunder, plus quiz positions
     (under the top bar, before/after the question title, after option N, after all options, result screen, quiz lists);
   - alignment (left, center, right, float, no wrapping or custom CSS) and an optional "Advertisement" label;
   - display on quiz pages, quiz lists, posts, pages, homepage, archives and search, and which quiz steps;

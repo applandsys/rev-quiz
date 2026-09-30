@@ -67,6 +67,7 @@ class RQ_Ads {
 				'before_comments'  => __( 'Before comments', 'rev-quiz' ),
 				'footer'           => __( 'Footer', 'rev-quiz' ),
 				'popup'            => __( 'Popup (modal with close button)', 'rev-quiz' ),
+				'popunder'         => __( 'Popunder', 'rev-quiz' ),
 			),
 			__( 'Quiz pages', 'rev-quiz' )  => array(
 				'quiz_top'            => __( 'Quiz: under the top bar', 'rev-quiz' ),
@@ -154,6 +155,8 @@ class RQ_Ads {
 			'label'           => 0,
 			'popup_delay'     => 1000,
 			'popup_unfilled'  => 1,
+			'pop_click'       => 1,  // Popunder opens on the visitor's Nth click (0 = on page load, network scripts only).
+			'pop_hours'       => 24, // At most once per this many hours per visitor (0 = every page view).
 			'manual_shortcode' => 1,
 			'manual_widget'   => 1,
 			'manual_php'      => 1,
@@ -680,6 +683,7 @@ class RQ_Ads {
 	public static function footer() {
 		echo self::print_position( 'footer' ); // phpcs:ignore WordPress.Security.EscapeOutput
 		self::popups();
+		self::popunders();
 		if ( self::code_here( 'footer' ) ) {
 			echo self::all()['footer']['code'] . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput -- admin-supplied code.
 		}
@@ -698,6 +702,28 @@ class RQ_Ads {
 				(int) $block['popup_unfilled'],
 				esc_attr__( 'Close', 'rev-quiz' ),
 				self::render( $n, $block ) // phpcs:ignore WordPress.Security.EscapeOutput -- admin-supplied ad code.
+			);
+		}
+	}
+
+	/**
+	 * Popunder blocks. The code is either a network's popunder script (Adsterra, PropellerAds,
+	 * Monetag ...) or just the URL to open. Either way it waits in a <template> until the
+	 * visitor's Nth click and runs at most once per "pop_hours" per visitor.
+	 */
+	private static function popunders() {
+		foreach ( self::blocks_for( 'popunder' ) as $n => $block ) {
+			self::$popup_printed = true;
+			self::$counts[ $n ]  = isset( self::$counts[ $n ] ) ? self::$counts[ $n ] + 1 : 1;
+			$code                = trim( $block['code'] );
+			$url                 = preg_match( '#^https?://\S+$#i', $code ) ? esc_url( $code ) : '';
+			printf(
+				'<template data-rq-popunder="%d" data-url="%s" data-click="%d" data-hours="%d">%s</template>' . "\n",
+				(int) $n,
+				esc_attr( $url ),
+				(int) $block['pop_click'],
+				(int) $block['pop_hours'],
+				$url ? '' : do_shortcode( $code ) // phpcs:ignore WordPress.Security.EscapeOutput -- admin-supplied ad code.
 			);
 		}
 	}

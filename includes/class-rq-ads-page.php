@@ -90,6 +90,8 @@ class RQ_Ads_Page {
 			$b['max']            = isset( $in['max'] ) ? absint( $in['max'] ) : 0;
 			$b['min_paragraphs'] = isset( $in['min_paragraphs'] ) ? absint( $in['min_paragraphs'] ) : 0;
 			$b['popup_delay']    = isset( $in['popup_delay'] ) ? absint( $in['popup_delay'] ) : 0;
+			$b['pop_click']      = isset( $in['pop_click'] ) ? absint( $in['pop_click'] ) : 1;
+			$b['pop_hours']      = isset( $in['pop_hours'] ) ? absint( $in['pop_hours'] ) : 24;
 			foreach ( array( 'label', 'popup_unfilled', 'manual_shortcode', 'manual_widget', 'manual_php' ) as $key ) {
 				$b[ $key ] = empty( $in[ $key ] ) ? 0 : 1;
 			}
@@ -252,6 +254,14 @@ class RQ_Ads_Page {
 				<?php esc_html_e( 'Popup delay (ms)', 'rev-quiz' ); ?>
 				<input type="number" min="0" class="small-text" name="<?php echo esc_attr( self::name( $p . '[popup_delay]' ) ); ?>" value="<?php echo esc_attr( $b['popup_delay'] ); ?>">
 				<?php self::checkbox( $p . '[popup_unfilled]', (bool) $b['popup_unfilled'], __( 'Close the popup when the ad is not filled', 'rev-quiz' ) ); ?>
+			</div>
+			<div class="rq-ai-popunder" <?php echo 'popunder' === $b['position'] ? '' : 'hidden'; ?>>
+				<?php esc_html_e( 'Open on click number', 'rev-quiz' ); ?>
+				<input type="number" min="0" class="small-text" name="<?php echo esc_attr( self::name( $p . '[pop_click]' ) ); ?>" value="<?php echo esc_attr( $b['pop_click'] ); ?>">
+				&nbsp; <?php esc_html_e( 'At most once every', 'rev-quiz' ); ?>
+				<input type="number" min="0" class="small-text" name="<?php echo esc_attr( self::name( $p . '[pop_hours]' ) ); ?>" value="<?php echo esc_attr( $b['pop_hours'] ); ?>">
+				<?php esc_html_e( 'hours per visitor', 'rev-quiz' ); ?>
+				<p class="description"><?php esc_html_e( 'Paste your ad network\'s popunder script (Adsterra, PropellerAds, Monetag ...) or just the URL to open. A URL opens in a new window behind the page on the chosen click; a script is run on that click (0 = run it on page load and let the network pick the moment). 0 hours = every page view. Most browsers show a popunder as a new background tab.', 'rev-quiz' ); ?></p>
 			</div>
 
 			<div class="rq-ai-cols">

@@ -1,0 +1,24 @@
+.rq-q { margin: 0 0 12px; border: 1px solid #dcdcde; border-radius: 4px; background: #fff; }
+.rq-q-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f6f7f7; border-bottom: 1px solid #dcdcde; }
+.rq-q-head .rq-q-title { flex: 1; font-weight: 600; }
+.rq-q-num { white-space: nowrap; color: #50575e; }
+.rq-q-body { padding: 4px 12px 8px; }
+.rq-q.is-collapsed .rq-q-body { display: none; }
+.rq-q.is-collapsed .rq-q-toggle .dashicons { transform: rotate(-90deg); }
+.rq-handle { cursor: move; color: #8c8f94; }
+.rq-options-table td { vertical-align: middle; }
+.rq-col-handle { width: 24px; }
+.rq-col-correct { width: 60px; text-align: center; }
+.rq-image-cell { display: flex; align-items: center; gap: 6px; }
+.rq-image-cell .rq-image { flex: 1; min-width: 0; }
+.rq-preview { width: 32px; height: 32px; object-fit: contain; }
+.rq-options .ui-sortable-helper, .rq-questions .ui-sortable-helper { background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); }
+
+/* Settings page */
+.rq-sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 16px; max-width: 760px; margin: 6px 0; }
+.rq-sources label { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid #dcdcde; border-radius: 4px; background: #fff; }
+.rq-sources label:has(input:checked) { border-color: #2271b1; background: #f0f6fc; }
+.rq-source-tools { margin: 4px 0 8px; }
+.rq-status { display: inline-block; padding: 6px 10px; border-radius: 4px; background: #f0f6fc; border-left: 4px solid #2271b1; }
+.rq-status.is-open { background: #edfaef; border-left-color: #00a32a; }
+.rq-settings textarea.code { font-family: Consolas, Monaco, monospace; }

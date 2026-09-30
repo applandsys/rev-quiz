@@ -1,6 +1,7 @@
 <?php
 /**
- * Front end: routing checks, the traffic filter, templates, assets and injected code.
+ * Front end: routing checks, the traffic filter, templates, assets, OneSignal and Translate.
+ * Ads and header/footer code: RQ_Ads.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,7 +22,6 @@ class RQ_Frontend {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'dequeue_theme_styles' ), 100 );
 		add_action( 'wp_head', array( __CLASS__, 'head_code' ), 20 );
-		add_action( 'wp_footer', array( __CLASS__, 'footer_code' ), 20 );
 		add_filter( 'body_class', array( __CLASS__, 'body_class' ) );
 		add_filter( 'wp_robots', array( __CLASS__, 'robots' ) );
 	}
@@ -30,12 +30,9 @@ class RQ_Frontend {
 		return is_singular( RQ_Post_Types::POST_TYPE ) || is_tax( RQ_Post_Types::TAXONOMY ) || is_post_type_archive( RQ_Post_Types::POST_TYPE );
 	}
 
-	/** Ad code is printed only for visitors who pass the traffic filter (unless allowed in settings). */
+	/** Ads follow the Ad blocks settings and, on quiz pages, the traffic filter. */
 	public static function ads_allowed() {
-		if ( ! RQ_Settings::get( 'ads_enabled' ) ) {
-			return false;
-		}
-		return RQ_Cloak::visitor_allowed() || RQ_Settings::get( 'ads_for_blocked' );
+		return RQ_Ads::ads_allowed();
 	}
 
 	public static function template_redirect() {
@@ -110,11 +107,6 @@ class RQ_Frontend {
 		}
 		wp_enqueue_style( 'rev-quiz', RQ_URL . 'assets/css/rev-quiz.css', array(), RQ_VERSION );
 		wp_enqueue_script( 'rev-quiz', RQ_URL . 'assets/js/rev-quiz.js', array(), RQ_VERSION, true );
-
-		if ( self::ads_allowed() ) {
-			wp_enqueue_script( 'rev-quiz-ads', RQ_URL . 'assets/ads-manager.js', array(), RQ_VERSION, false );
-			wp_add_inline_script( 'rev-quiz-ads', 'window.SiteAdsConfig = ' . wp_json_encode( RQ_Settings::ads_config() ) . ';', 'before' );
-		}
 	}
 
 	/** The quiz pages have their own layout; theme CSS would only fight it. */
@@ -152,10 +144,6 @@ class RQ_Frontend {
 		return $robots;
 	}
 
-	private static function code_here() {
-		return self::is_quiz_page() || RQ_Settings::get( 'code_sitewide' );
-	}
-
 	public static function head_code() {
 		if ( self::is_quiz_page() ) {
 			$app_id = trim( (string) RQ_Settings::get( 'onesignal_app_id' ) );
@@ -172,45 +160,12 @@ class RQ_Frontend {
 				echo '<script src="https://translate.google.com/translate_a/element.js?cb=rqTranslateInit" defer></script>' . "\n";
 			}
 		}
-		if ( self::code_here() ) {
-			echo RQ_Settings::get( 'header_code' ); // phpcs:ignore WordPress.Security.EscapeOutput -- admin-supplied code, saved only with unfiltered_html.
-		}
-	}
-
-	public static function footer_code() {
-		if ( self::code_here() ) {
-			echo RQ_Settings::get( 'footer_code' ); // phpcs:ignore WordPress.Security.EscapeOutput -- admin-supplied code, saved only with unfiltered_html.
-		}
 	}
 
 	/* ---------- Template helpers ---------- */
 
-	public static function banner( $height = 300 ) {
-		if ( ! self::ads_allowed() || ! RQ_Settings::get( 'fmt_banner' ) ) {
-			return;
-		}
-		printf(
-			'<div class="banner rq-banner"><ins class="adsbygoogle" data-site-ad="banner" style="display:block; width:100%% !important; height:%dpx !important;"></ins></div>',
-			(int) $height
-		);
-	}
-
-	public static function popup() {
-		if ( ! self::ads_allowed() || ! RQ_Settings::get( 'fmt_popup' ) ) {
-			return;
-		}
-		?>
-		<div id="ads-modal" class="hidden rq-modal">
-			<button type="button" id="close_modal" aria-label="<?php esc_attr_e( 'Close', 'rev-quiz' ); ?>">&times;</button>
-			<div class="rq-modal-body">
-				<ins class="adsbygoogle" data-site-ad="popup" style="display:block; width:300px !important; height:600px !important;"></ins>
-			</div>
-		</div>
-		<?php
-	}
-
 	public static function rewarded_box( $target ) {
-		if ( ! self::ads_allowed() || ! RQ_Settings::get( 'fmt_rewarded' ) || ! RQ_Settings::get( 'rewarded_box' ) ) {
+		if ( ! self::ads_allowed() || ! RQ_Ads::general( 'rewarded' ) || ! RQ_Settings::get( 'rewarded_box' ) ) {
 			return;
 		}
 		?>

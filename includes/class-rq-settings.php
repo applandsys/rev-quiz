@@ -14,7 +14,7 @@ class RQ_Settings {
 	private static $cache = null;
 
 	/**
-	 * Defaults mirror the values of the original assets/ads-config.js.
+	 * Ad settings live in RQ_Ads (REW QUIZZ > Ad blocks).
 	 */
 	public static function defaults() {
 		return array(
@@ -35,26 +35,6 @@ class RQ_Settings {
 			'rewarded_box'           => 1,
 			'rewarded_text'          => 'Redeem rewards to unlock the full guide',
 			'rewarded_button'        => "Let's Play",
-			'banner_after'           => 4,
-
-			// AdSense ("add code" from assets/ads-config.js).
-			'ads_enabled'            => 1,
-			'publisher_id'           => 'ca-pub-8026299207830445',
-			'slot_banner'            => '7009281033',
-			'slot_popup'             => '7009281033',
-			'fmt_banner'             => 1,
-			'fmt_popup'              => 1,
-			'fmt_rewarded'           => 1,
-			'fmt_interstitial'       => 0,
-			'popup_delay'            => 1,
-			'popup_hide_unfilled'    => 1,
-			'popup_timeout'          => 8000,
-			'rewarded_placement'     => 'game_started',
-			'rewarded_once'          => 1,
-			'rewarded_session_key'   => 'adShown',
-			'interstitial_placement' => 'between_sections',
-			'interstitial_type'      => 'next',
-			'anchor_position'        => 'account',
 
 			// Push notifications and translation.
 			'onesignal_app_id'       => '',
@@ -62,10 +42,6 @@ class RQ_Settings {
 			'translate_page_lang'    => 'en',
 			'translate_languages'    => 'hi,es,fr,pt,ru,tr,mr,te,vi',
 
-			// Custom code.
-			'header_code'            => '',
-			'footer_code'            => '',
-			'code_sitewide'          => 0,
 		);
 	}
 
@@ -201,44 +177,6 @@ class RQ_Settings {
 				'domains' => array( 'discord.com', 'discord.gg', 'discordapp.com' ),
 				'utm'     => array( 'discord' ),
 				'ua'      => array( 'Discord' ),
-			),
-		);
-	}
-
-	/**
-	 * window.SiteAdsConfig for assets/ads-manager.js, built from the settings.
-	 */
-	public static function ads_config() {
-		$s = self::all();
-		return array(
-			'enabled'      => (bool) $s['ads_enabled'],
-			'publisherId'  => (string) $s['publisher_id'],
-			'slots'        => array(
-				'banner' => (string) $s['slot_banner'],
-				'popup'  => (string) $s['slot_popup'],
-			),
-			'formats'      => array(
-				'banner'       => (bool) $s['fmt_banner'],
-				'popup'        => (bool) $s['fmt_popup'],
-				'rewarded'     => (bool) $s['fmt_rewarded'],
-				'interstitial' => (bool) $s['fmt_interstitial'],
-			),
-			'popup'        => array(
-				'delayMs'          => (int) $s['popup_delay'],
-				'hideWhenUnfilled' => (bool) $s['popup_hide_unfilled'],
-				'loadTimeoutMs'    => (int) $s['popup_timeout'],
-			),
-			'rewarded'     => array(
-				'placementName' => (string) $s['rewarded_placement'],
-				'oncePerTab'    => (bool) $s['rewarded_once'],
-				'sessionKey'    => (string) $s['rewarded_session_key'],
-			),
-			'interstitial' => array(
-				'placementName' => (string) $s['interstitial_placement'],
-				'placementType' => (string) $s['interstitial_type'],
-			),
-			'anchor'       => array(
-				'position' => (string) $s['anchor_position'],
 			),
 		);
 	}

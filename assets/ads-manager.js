@@ -1,10 +1,9 @@
-/* Ad loading and placement shared by all pages. Settings: ads-config.js. */
+/* Popup ad blocks and the Google H5 formats (rewarded, interstitial). Settings: REW QUIZZ > Ad blocks. */
 (function (window, document) {
     'use strict';
 
     var config = window.SiteAdsConfig || {};
     var formats = config.formats || {};
-    var slots = config.slots || {};
     var publisherId = config.publisherId || '';
     var canLoad = config.enabled === true && /^ca-pub-\d+$/.test(publisherId);
     var rewardedInMemory = false;
@@ -14,85 +13,54 @@
         return canLoad && formats[format] === true;
     }
 
-    function hideSlot(element) {
-        var container = element.closest('.banner') || element;
-        container.style.display = 'none';
-    }
-
-    function configureSlot(element, slot) {
-        if (!/^\d+$/.test(slot || '')) {
-            hideSlot(element);
-            return false;
-        }
-        element.setAttribute('data-ad-client', publisherId);
-        element.setAttribute('data-ad-slot', slot);
-        return true;
-    }
-
-    function requestDisplayAd(element) {
-        try {
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (error) {
-            console.error('Could not request display ad:', error);
-            if (element.closest('#ads-modal')) {
-                element.closest('#ads-modal').classList.add('hidden');
-            }
-        }
-    }
-
-    function setupBannerAds() {
-        var banners = document.querySelectorAll('ins.adsbygoogle[data-site-ad="banner"]');
-        banners.forEach(function (element) {
-            if (!isEnabled('banner')) {
-                hideSlot(element);
-            } else if (configureSlot(element, slots.banner)) {
-                requestDisplayAd(element);
-            }
+    // Popup blocks keep their code in a <template> so ad scripts run only once the popup is visible.
+    function runCode(template, target) {
+        target.appendChild(template.content.cloneNode(true));
+        target.querySelectorAll('script').forEach(function (old) {
+            var script = document.createElement('script');
+            Array.prototype.forEach.call(old.attributes, function (attr) {
+                script.setAttribute(attr.name, attr.value);
+            });
+            script.text = old.text;
+            old.parentNode.replaceChild(script, old);
         });
     }
 
-    function setupPopup() {
-        var modal = document.getElementById('ads-modal');
-        if (!modal) return;
+    function setupPopups() {
+        document.querySelectorAll('[data-rq-popup]').forEach(function (modal) {
+            var body = modal.querySelector('.rq-modal-body');
+            var template = modal.querySelector('template');
+            var close = modal.querySelector('.rq-modal-close');
+            if (close) {
+                close.addEventListener('click', function () {
+                    modal.classList.add('hidden');
+                });
+            }
+            if (!body || !template) return;
 
-        // The popup starts hidden in HTML, before any external script loads.
-        var closeButton = document.getElementById('close_modal');
-        if (closeButton) {
-            closeButton.addEventListener('click', function () {
-                modal.classList.add('hidden');
-            });
-        }
+            var delay = Math.max(0, Number(modal.getAttribute('data-delay')) || 0);
+            var hideUnfilled = modal.getAttribute('data-hide-unfilled') === '1';
+            window.setTimeout(function () {
+                modal.classList.remove('hidden');
+                runCode(template, body);
 
-        var element = modal.querySelector('ins.adsbygoogle[data-site-ad="popup"]');
-        if (!element || !isEnabled('popup') || !/^\d+$/.test(slots.popup || '')) return;
-
-        var popup = config.popup || {};
-        var delay = Math.max(0, Number(popup.delayMs) || 0);
-        window.setTimeout(function () {
-            if (!configureSlot(element, slots.popup)) return;
-            if (popup.hideWhenUnfilled) {
+                var unit = body.querySelector('ins.adsbygoogle');
+                if (!unit || !hideUnfilled) return;
                 var observer = new MutationObserver(function () {
-                    if (element.getAttribute('data-ad-status') === 'unfilled') {
+                    if (unit.getAttribute('data-ad-status') === 'unfilled') {
                         modal.classList.add('hidden');
                         observer.disconnect();
                     }
                 });
-                observer.observe(element, { attributes: true, attributeFilter: ['data-ad-status'] });
-            }
-
-            modal.classList.remove('hidden');
-            requestDisplayAd(element);
-
-            // A blocked or unavailable SDK must not leave an empty popup open.
-            var timeout = Number(popup.loadTimeoutMs) || 0;
-            if (timeout > 0) {
+                observer.observe(unit, { attributes: true, attributeFilter: ['data-ad-status'] });
+                // A blocked or unavailable ad library must not leave an empty popup open.
                 window.setTimeout(function () {
-                    if (element.getAttribute('data-ad-status') !== 'filled') {
+                    if (unit.getAttribute('data-ad-status') !== 'filled') {
                         modal.classList.add('hidden');
                     }
-                }, timeout);
-            }
-        }, delay);
+                }, 8000);
+            }, delay);
+        });
     }
 
     function hasReward() {
@@ -169,34 +137,20 @@
     };
 
     if (canLoad) {
+        // The AdSense library itself is loaded in <head> (REW QUIZZ > Ad blocks > General).
         // Google replaces these queue shims when its library is ready.
         window.adsbygoogle = window.adsbygoogle || [];
         window.adBreak = window.adConfig = function (options) {
             window.adsbygoogle.push(options);
         };
-
-        var tag = document.createElement('script');
-        tag.async = true;
-        tag.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(publisherId);
-        tag.crossOrigin = 'anonymous';
-        var position = config.anchor && config.anchor.position;
-        if (position === 'bottom' || position === 'collapsed-bottom') {
-            tag.setAttribute('data-overlays', position);
-        }
-        document.head.appendChild(tag);
-
         if (formats.rewarded || formats.interstitial) {
             window.adConfig({ preloadAdBreaks: 'on', sound: 'off' });
         }
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            setupBannerAds();
-            setupPopup();
-        });
+        document.addEventListener('DOMContentLoaded', setupPopups);
     } else {
-        setupBannerAds();
-        setupPopup();
+        setupPopups();
     }
 }(window, document));

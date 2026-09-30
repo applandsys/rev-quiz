@@ -119,7 +119,7 @@ body.rq-body { top: 0 !important; }
 }
 .rq-modal.hidden { display: none; }
 .rq-modal-body { display: flex; justify-content: center; }
-#close_modal {
+#close_modal, .rq-modal-close {
 	position: absolute; top: 4px; right: 6px;
 	width: 32px; height: 32px; border: 0; border-radius: 50%;
 	background: #eee; color: #333; font-size: 20px; line-height: 1; cursor: pointer;

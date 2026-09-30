@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       REW QUIZZ
- * Description:       Step-by-step quizzes with categories in the permalink, per-quiz instruction text, a social traffic-source filter (cloaking) and one place to manage AdSense, OneSignal and custom code.
- * Version:           1.3.0
+ * Description:       Step-by-step quizzes with categories in the permalink, per-quiz instruction text, a social traffic-source filter (cloaking) and Ad Inserter style ad blocks, OneSignal and custom code.
+ * Version:           1.4.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            REW QUIZZ
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RQ_VERSION', '1.3.0' );
+define( 'RQ_VERSION', '1.4.0' );
 define( 'RQ_FILE', __FILE__ );
 define( 'RQ_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RQ_URL', plugin_dir_url( __FILE__ ) );
@@ -24,20 +24,26 @@ require_once RQ_DIR . 'includes/class-rq-post-types.php';
 require_once RQ_DIR . 'includes/class-rq-cloak.php';
 require_once RQ_DIR . 'includes/class-rq-quiz.php';
 require_once RQ_DIR . 'includes/class-rq-frontend.php';
+require_once RQ_DIR . 'includes/class-rq-ads.php';
 require_once RQ_DIR . 'includes/class-rq-installer.php';
 
 if ( is_admin() ) {
 	require_once RQ_DIR . 'includes/class-rq-admin.php';
 	require_once RQ_DIR . 'includes/class-rq-settings-page.php';
+	require_once RQ_DIR . 'includes/class-rq-ads-page.php';
 }
 
 RQ_Post_Types::init();
 RQ_Frontend::init();
+RQ_Ads::init();
+// Builds the ad blocks from the old AdSense settings on the first load after updating.
+add_action( 'init', array( 'RQ_Ads', 'all' ), 21 );
 add_action( 'init', array( 'RQ_Installer', 'maybe_upgrade' ), 20 );
 
 if ( is_admin() ) {
 	RQ_Admin::init();
 	RQ_Settings_Page::init();
+	RQ_Ads_Page::init();
 }
 
 register_activation_hook( __FILE__, array( 'RQ_Installer', 'activate' ) );

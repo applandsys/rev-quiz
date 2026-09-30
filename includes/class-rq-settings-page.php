@@ -50,7 +50,7 @@ class RQ_Settings_Page {
 	}
 
 	private static function checkboxes() {
-		return array( 'admin_bypass', 'ads_for_blocked', 'rewarded_box', 'ads_enabled', 'fmt_banner', 'fmt_popup', 'fmt_rewarded', 'fmt_interstitial', 'popup_hide_unfilled', 'rewarded_once', 'translate_enabled', 'code_sitewide' );
+		return array( 'admin_bypass', 'ads_for_blocked', 'rewarded_box', 'translate_enabled' );
 	}
 
 	public static function sanitize( $input ) {
@@ -75,32 +75,10 @@ class RQ_Settings_Page {
 		}
 
 		$out['default_instructions'] = isset( $input['default_instructions'] ) ? wp_kses_post( $input['default_instructions'] ) : '';
-		foreach ( array( 'rewarded_text', 'rewarded_button', 'rewarded_placement', 'rewarded_session_key', 'interstitial_placement', 'translate_page_lang', 'translate_languages' ) as $key ) {
+		foreach ( array( 'rewarded_text', 'rewarded_button', 'translate_page_lang', 'translate_languages' ) as $key ) {
 			$out[ $key ] = isset( $input[ $key ] ) ? sanitize_text_field( $input[ $key ] ) : '';
 		}
-		$out['banner_after']  = isset( $input['banner_after'] ) ? absint( $input['banner_after'] ) : 4;
-		$out['popup_delay']   = isset( $input['popup_delay'] ) ? absint( $input['popup_delay'] ) : 1;
-		$out['popup_timeout'] = isset( $input['popup_timeout'] ) ? absint( $input['popup_timeout'] ) : 8000;
-
-		$publisher           = isset( $input['publisher_id'] ) ? trim( sanitize_text_field( $input['publisher_id'] ) ) : '';
-		$publisher           = preg_match( '/^\d+$/', $publisher ) ? 'ca-pub-' . $publisher : $publisher;
-		$out['publisher_id'] = $publisher;
-		if ( $publisher && ! preg_match( '/^ca-pub-\d+$/', $publisher ) ) {
-			add_settings_error( RQ_Settings::OPTION, 'publisher', __( 'The AdSense publisher ID should look like ca-pub-1234567890123456. Ads stay off until it does.', 'rev-quiz' ) );
-		}
-		foreach ( array( 'slot_banner', 'slot_popup' ) as $key ) {
-			$out[ $key ] = isset( $input[ $key ] ) ? preg_replace( '/\D/', '', $input[ $key ] ) : '';
-		}
-		$out['interstitial_type'] = isset( $input['interstitial_type'] ) && in_array( $input['interstitial_type'], array( 'next', 'browse', 'start', 'pause' ), true ) ? $input['interstitial_type'] : 'next';
-		$out['anchor_position']   = isset( $input['anchor_position'] ) && in_array( $input['anchor_position'], array( 'account', 'bottom', 'collapsed-bottom' ), true ) ? $input['anchor_position'] : 'account';
-
 		$out['onesignal_app_id'] = isset( $input['onesignal_app_id'] ) ? preg_replace( '/[^a-f0-9-]/i', '', $input['onesignal_app_id'] ) : '';
-
-		// Raw script/HTML is kept only for users allowed to post unfiltered HTML.
-		foreach ( array( 'header_code', 'footer_code' ) as $key ) {
-			$code        = isset( $input[ $key ] ) ? (string) $input[ $key ] : '';
-			$out[ $key ] = current_user_can( 'unfiltered_html' ) ? $code : wp_kses_post( $code );
-		}
 
 		if ( $out['base_slug'] !== $old['base_slug'] ) {
 			update_option( 'rq_flush_rewrite', 1 );
@@ -287,16 +265,6 @@ class RQ_Settings_Page {
 					</tr>
 					<?php
 					self::row(
-						__( 'Banner position', 'rev-quiz' ),
-						'banner_after',
-						function () {
-							esc_html_e( 'After option', 'rev-quiz' );
-							echo ' ';
-							self::text( 'banner_after', 'small-text', 'number', 'min="0"' );
-						},
-						__( 'Where the in-list banner goes, as on the original pages (after the 4th option). 0 puts it under the options.', 'rev-quiz' )
-					);
-					self::row(
 						__( 'Rewarded box', 'rev-quiz' ),
 						'rewarded_box',
 						function () {
@@ -310,92 +278,13 @@ class RQ_Settings_Page {
 					?>
 				</table>
 
-				<h2><?php esc_html_e( 'Ad code (AdSense)', 'rev-quiz' ); ?></h2>
-				<p><?php esc_html_e( 'These are the settings from the original assets/ads-config.js. Change them here instead of editing the file.', 'rev-quiz' ); ?></p>
-				<table class="form-table" role="presentation">
+				<h2><?php esc_html_e( 'Ads and custom code', 'rev-quiz' ); ?></h2>
+				<p>
 					<?php
-					self::row( __( 'Ads', 'rev-quiz' ), 'ads_enabled', function () { self::checkbox( 'ads_enabled', __( 'Load ad code on quiz pages', 'rev-quiz' ) ); } );
-					self::row( __( 'Publisher ID', 'rev-quiz' ), 'publisher_id', function () { self::text( 'publisher_id', 'regular-text', 'text', 'placeholder="ca-pub-0000000000000000"' ); } );
-					self::row( __( 'Banner slot ID', 'rev-quiz' ), 'slot_banner', function () { self::text( 'slot_banner' ); } );
-					self::row( __( 'Popup slot ID', 'rev-quiz' ), 'slot_popup', function () { self::text( 'slot_popup' ); } );
-					self::row(
-						__( 'Formats', 'rev-quiz' ),
-						'fmt_banner',
-						function () {
-							self::checkbox( 'fmt_banner', __( 'In-page banners', 'rev-quiz' ) );
-							echo '<br>';
-							self::checkbox( 'fmt_popup', __( 'Popup ad on the first step', 'rev-quiz' ) );
-							echo '<br>';
-							self::checkbox( 'fmt_rewarded', __( 'Rewarded ad (the "Redeem rewards" button)', 'rev-quiz' ) );
-							echo '<br>';
-							self::checkbox( 'fmt_interstitial', __( 'Interstitial between quiz steps', 'rev-quiz' ) );
-						},
-						__( 'Rewarded and interstitial use the Google H5 Ad Placement API; check that your AdSense account is eligible.', 'rev-quiz' )
-					);
-					self::row(
-						__( 'Popup', 'rev-quiz' ),
-						'popup_delay',
-						function () {
-							esc_html_e( 'Delay (ms)', 'rev-quiz' );
-							echo ' ';
-							self::text( 'popup_delay', 'small-text', 'number', 'min="0"' );
-							echo ' &nbsp; ';
-							esc_html_e( 'Close if not filled after (ms)', 'rev-quiz' );
-							echo ' ';
-							self::text( 'popup_timeout', 'small-text', 'number', 'min="0"' );
-							echo '<br>';
-							self::checkbox( 'popup_hide_unfilled', __( 'Hide the popup when no ad is returned', 'rev-quiz' ) );
-						}
-					);
-					self::row(
-						__( 'Rewarded', 'rev-quiz' ),
-						'rewarded_placement',
-						function () {
-							esc_html_e( 'Placement name', 'rev-quiz' );
-							echo ' ';
-							self::text( 'rewarded_placement', 'regular-text' );
-							echo '<br>';
-							esc_html_e( 'Session key', 'rev-quiz' );
-							echo ' ';
-							self::text( 'rewarded_session_key', 'regular-text' );
-							echo '<br>';
-							self::checkbox( 'rewarded_once', __( 'Show once per browser tab', 'rev-quiz' ) );
-						}
-					);
-					self::row(
-						__( 'Interstitial', 'rev-quiz' ),
-						'interstitial_placement',
-						function () {
-							esc_html_e( 'Placement name', 'rev-quiz' );
-							echo ' ';
-							self::text( 'interstitial_placement', 'regular-text' );
-							echo ' ';
-							echo '<select name="' . esc_attr( self::name( 'interstitial_type' ) ) . '">';
-							foreach ( array( 'next', 'browse', 'start', 'pause' ) as $type ) {
-								echo '<option value="' . esc_attr( $type ) . '" ' . selected( RQ_Settings::get( 'interstitial_type' ), $type, false ) . '>' . esc_html( $type ) . '</option>';
-							}
-							echo '</select>';
-						}
-					);
-					self::row(
-						__( 'Anchor position', 'rev-quiz' ),
-						'anchor_position',
-						function () {
-							echo '<select id="rq-anchor_position" name="' . esc_attr( self::name( 'anchor_position' ) ) . '">';
-							$options = array(
-								'account'          => __( 'Use AdSense account setting', 'rev-quiz' ),
-								'bottom'           => __( 'Bottom', 'rev-quiz' ),
-								'collapsed-bottom' => __( 'Collapsed bottom', 'rev-quiz' ),
-							);
-							foreach ( $options as $value => $label ) {
-								echo '<option value="' . esc_attr( $value ) . '" ' . selected( RQ_Settings::get( 'anchor_position' ), $value, false ) . '>' . esc_html( $label ) . '</option>';
-							}
-							echo '</select>';
-						},
-						__( 'Anchor ads are switched on or off in AdSense > Ads > Auto ads > Overlay formats.', 'rev-quiz' )
-					);
+					/* translators: %s: link to the Ad blocks screen */
+					printf( esc_html__( 'Ad code, AdSense, rewarded and interstitial ads, header and footer code and ads.txt are managed in %s, which works like the Ad Inserter plugin.', 'rev-quiz' ), '<a href="' . esc_url( RQ_Ads_Page::url() ) . '">' . esc_html__( 'Ad blocks', 'rev-quiz' ) . '</a>' );
 					?>
-				</table>
+				</p>
 
 				<h2><?php esc_html_e( 'Push notifications and translation', 'rev-quiz' ); ?></h2>
 				<table class="form-table" role="presentation">
@@ -416,15 +305,6 @@ class RQ_Settings_Page {
 							self::text( 'translate_languages', 'regular-text' );
 						}
 					);
-					?>
-				</table>
-
-				<h2><?php esc_html_e( 'Custom code', 'rev-quiz' ); ?></h2>
-				<table class="form-table" role="presentation">
-					<?php
-					self::row( __( 'Header code', 'rev-quiz' ), 'header_code', function () { self::textarea( 'header_code', 6 ); }, __( 'Printed inside &lt;head&gt;. For analytics, pixels, site verification and similar tags.', 'rev-quiz' ) );
-					self::row( __( 'Footer code', 'rev-quiz' ), 'footer_code', function () { self::textarea( 'footer_code', 6 ); }, __( 'Printed before &lt;/body&gt;.', 'rev-quiz' ) );
-					self::row( __( 'Where', 'rev-quiz' ), 'code_sitewide', function () { self::checkbox( 'code_sitewide', __( 'Load the custom code on the whole site, not only on quiz pages', 'rev-quiz' ) ); } );
 					?>
 				</table>
 

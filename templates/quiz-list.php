@@ -27,7 +27,7 @@ require RQ_DIR . 'templates/parts/header.php';
 		<?php endif; ?>
 	</header>
 
-	<?php RQ_Frontend::banner( 300 ); ?>
+	<?php do_action( 'rq_ad_position', 'list_top' ); ?>
 
 	<?php if ( ! $rq_term ) : ?>
 		<?php
@@ -64,6 +64,7 @@ require RQ_DIR . 'templates/parts/header.php';
 				<?php endforeach; ?>
 			</div>
 		<?php endif; ?>
+		<?php do_action( 'rq_ad_position', 'list_after_grid' ); ?>
 		<h2 class="rq-more-title"><?php esc_html_e( 'Latest quizzes', 'rev-quiz' ); ?></h2>
 	<?php endif; ?>
 
@@ -97,6 +98,8 @@ require RQ_DIR . 'templates/parts/header.php';
 			<div class="rq-content"><?php echo wp_kses_post( wpautop( $rq_term->description ) ); ?></div>
 		</article>
 	<?php endif; ?>
+
+	<?php do_action( 'rq_ad_position', 'list_bottom' ); ?>
 </main>
 <?php
 require RQ_DIR . 'templates/parts/footer.php';

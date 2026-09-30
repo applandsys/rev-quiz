@@ -8,15 +8,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-the_post();
-
-$rq_post      = get_post();
+$rq_post      = get_queried_object();
+setup_postdata( $GLOBALS['post'] = $rq_post ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 $rq_questions = RQ_Quiz::questions( $rq_post->ID );
 $rq_total     = count( $rq_questions );
 $rq_step      = RQ_Frontend::$step;
 $rq_term      = RQ_Post_Types::primary_term( $rq_post );
 $rq_back      = $rq_step > 1 ? RQ_Post_Types::step_link( $rq_post, $rq_step - 1 ) : ( $rq_term ? get_term_link( $rq_term ) : get_post_type_archive_link( RQ_Post_Types::POST_TYPE ) );
-$rq_after     = max( 0, (int) RQ_Settings::get( 'banner_after' ) );
 $rq_content   = apply_filters( 'the_content', get_the_content() );
 
 require RQ_DIR . 'templates/parts/header.php';
@@ -36,6 +34,9 @@ require RQ_DIR . 'templates/parts/header.php';
 			<span class="rq-quiz-name"><?php the_title(); ?></span>
 		</div>
 	</header>
+
+	<?php do_action( 'rq_ad_position', 'before_post' ); ?>
+	<?php do_action( 'rq_ad_position', 'quiz_top' ); ?>
 
 	<?php if ( RQ_Frontend::$safe ) : ?>
 
@@ -73,19 +74,15 @@ require RQ_DIR . 'templates/parts/header.php';
 			<p class="rq-description"><?php echo esc_html( get_the_excerpt() ); ?></p>
 		<?php endif; ?>
 
-		<?php
-		if ( 1 === $rq_step ) {
-			RQ_Frontend::popup();
-		}
-		?>
-
 		<?php if ( $rq_step <= $rq_total ) : ?>
 			<?php $rq_q = $rq_questions[ $rq_step - 1 ]; ?>
 			<section class="rq-question">
+				<?php do_action( 'rq_ad_position', 'quiz_before_title' ); ?>
 				<h1 class="rq-question-title" id="text-container"><?php echo esc_html( $rq_q['title'] ); ?></h1>
 				<?php if ( $rq_q['subtitle'] ) : ?>
 					<p class="rq-question-sub"><?php echo esc_html( $rq_q['subtitle'] ); ?></p>
 				<?php endif; ?>
+				<?php do_action( 'rq_ad_position', 'quiz_after_title' ); ?>
 
 				<?php
 				if ( 1 === $rq_step ) {
@@ -111,23 +108,20 @@ require RQ_DIR . 'templates/parts/header.php';
 							<span class="rq-option-label"><?php echo esc_html( $rq_opt['label'] ); ?></span>
 							<?php echo RQ_Frontend::arrow(); // phpcs:ignore WordPress.Security.EscapeOutput -- static SVG. ?>
 						</a>
-						<?php
-						if ( $rq_after && $rq_i + 1 === $rq_after && count( $rq_q['options'] ) > $rq_after ) {
-							RQ_Frontend::banner( 350 );
-						}
-						?>
+						<?php do_action( 'rq_ad_position', 'quiz_after_option', $rq_i + 1 ); ?>
 					<?php endforeach; ?>
 				</div>
 				<?php
-				if ( ! $rq_after || count( $rq_q['options'] ) <= $rq_after ) {
-					RQ_Frontend::banner( 300 );
-				}
+				// Blocks set "after option N" land here when the question has fewer options.
+				do_action( 'rq_ad_position', 'quiz_after_option', -count( $rq_q['options'] ) );
+				do_action( 'rq_ad_position', 'quiz_after_options' );
 				?>
 			</section>
 
 		<?php else : ?>
 			<?php $rq_result = RQ_Quiz::result( $rq_post->ID ); ?>
 			<section class="rq-result">
+				<?php do_action( 'rq_ad_position', 'quiz_result_top' ); ?>
 				<h1 class="rq-question-title" id="text-container"><?php echo esc_html( $rq_result['title'] ); ?></h1>
 				<?php $rq_scored = RQ_Quiz::scored_count( $rq_questions ); ?>
 				<?php if ( $rq_scored ) : ?>
@@ -157,7 +151,7 @@ require RQ_DIR . 'templates/parts/header.php';
 				<a class="rq-button" href="<?php echo esc_url( $rq_next ); ?>"><?php echo esc_html( $rq_result['button'] ); ?></a>
 				<a class="rq-restart" href="<?php echo esc_url( get_permalink( $rq_post ) ); ?>"><?php esc_html_e( 'Start again', 'rev-quiz' ); ?></a>
 
-				<?php RQ_Frontend::banner( 300 ); ?>
+				<?php do_action( 'rq_ad_position', 'quiz_result_buttons' ); ?>
 
 				<?php
 				$rq_more = get_posts(
@@ -190,6 +184,9 @@ require RQ_DIR . 'templates/parts/header.php';
 		</article>
 
 	<?php endif; ?>
+
+	<?php do_action( 'rq_ad_position', 'after_post' ); ?>
+	<?php do_action( 'rq_ad_position', 'quiz_bottom' ); ?>
 </main>
 <?php
 require RQ_DIR . 'templates/parts/footer.php';

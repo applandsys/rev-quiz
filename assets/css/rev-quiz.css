@@ -63,7 +63,7 @@ body.rq-body { top: 0 !important; }
 	background: var(--rq-accent);
 	color: #fff;
 }
-.rq-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; }
+.rq-hero h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 700; }
 .rq-hero p { margin: 6px 0 0; font-size: 14px; opacity: .92; }
 .rq-hero .rq-back { margin-bottom: 12px; }
 

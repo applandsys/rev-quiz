@@ -24,6 +24,7 @@ class RQ_Frontend {
 		add_action( 'wp_head', array( __CLASS__, 'head_code' ), 20 );
 		add_filter( 'body_class', array( __CLASS__, 'body_class' ) );
 		add_filter( 'wp_robots', array( __CLASS__, 'robots' ) );
+		add_action( 'pre_get_posts', array( __CLASS__, 'category_order' ) );
 	}
 
 	public static function is_quiz_page() {
@@ -33,6 +34,21 @@ class RQ_Frontend {
 	/** Ads follow the Ad blocks settings and, on quiz pages, the traffic filter. */
 	public static function ads_allowed() {
 		return RQ_Ads::ads_allowed();
+	}
+
+	/** Category pages list quizzes in the order they were added; the quiz home shows the latest first. */
+	public static function category_order( $query ) {
+		if ( is_admin() || ! $query->is_main_query() || ! $query->is_tax( RQ_Post_Types::TAXONOMY ) ) {
+			return;
+		}
+		$query->set(
+			'orderby',
+			array(
+				'menu_order' => 'ASC',
+				'date'       => 'ASC',
+				'ID'         => 'ASC',
+			)
+		);
 	}
 
 	public static function template_redirect() {

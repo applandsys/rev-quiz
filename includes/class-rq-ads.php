@@ -658,7 +658,7 @@ class RQ_Ads {
 				echo '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' . esc_attr( $publisher ) . '" crossorigin="anonymous"' . $overlay . '></script>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput, WordPress.WP.EnqueuedResources
 			}
 			$class = sanitize_html_class( self::general( 'block_class' ) );
-			echo '<style>.' . esc_attr( $class ? $class : 'rq-ad' ) . '{margin:12px 0;clear:both;max-width:100%;overflow:hidden}.rq-ad-label{font-size:11px;color:#888;text-align:center;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}</style>' . "\n";
+			echo '<style>.' . esc_attr( $class ? $class : 'rq-ad' ) . '{margin:12px 0;clear:both;max-width:100%;overflow:hidden}ins.adsbygoogle[data-ad-status=unfilled]{display:none!important}.' . esc_attr( $class ? $class : 'rq-ad' ) . ':has(ins.adsbygoogle[data-ad-status=unfilled]){display:none}.rq-ad-label{font-size:11px;color:#888;text-align:center;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}</style>' . "\n";
 		}
 		if ( self::code_here( 'header' ) ) {
 			echo self::all()['header']['code'] . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput -- admin-supplied code.

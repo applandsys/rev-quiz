@@ -1,6 +1,6 @@
 <?php
 /**
- * Rev Quiz > Settings.
+ * REW QUIZZ > Settings.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +29,7 @@ class RQ_Settings_Page {
 	public static function menu() {
 		add_submenu_page(
 			'edit.php?post_type=' . RQ_Post_Types::POST_TYPE,
-			__( 'Rev Quiz Settings', 'rev-quiz' ),
+			__( 'REW QUIZZ Settings', 'rev-quiz' ),
 			__( 'Settings', 'rev-quiz' ),
 			'manage_options',
 			self::SLUG,
@@ -166,7 +166,7 @@ class RQ_Settings_Page {
 		$sample   = get_posts( array( 'post_type' => RQ_Post_Types::POST_TYPE, 'posts_per_page' => 1 ) );
 		?>
 		<div class="wrap rq-settings">
-			<h1><?php esc_html_e( 'Rev Quiz Settings', 'rev-quiz' ); ?></h1>
+			<h1><?php esc_html_e( 'REW QUIZZ Settings', 'rev-quiz' ); ?></h1>
 			<?php settings_errors( RQ_Settings::OPTION ); ?>
 
 			<form method="post" action="options.php">

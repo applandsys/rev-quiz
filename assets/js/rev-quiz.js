@@ -1,4 +1,4 @@
-/* Rev Quiz front end: saves answers, applies the language choice and moves between steps. */
+/* REW QUIZZ front end: saves answers, applies the language choice and moves between steps. */
 (function () {
 	'use strict';
 

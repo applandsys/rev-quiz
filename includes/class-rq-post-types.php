@@ -31,7 +31,7 @@ class RQ_Post_Types {
 				'labels'       => array(
 					'name'               => __( 'Quizzes', 'rev-quiz' ),
 					'singular_name'      => __( 'Quiz', 'rev-quiz' ),
-					'menu_name'          => __( 'Rev Quiz', 'rev-quiz' ),
+					'menu_name'          => __( 'REW QUIZZ', 'rev-quiz' ),
 					'add_new'            => __( 'Add Quiz', 'rev-quiz' ),
 					'add_new_item'       => __( 'Add New Quiz', 'rev-quiz' ),
 					'edit_item'          => __( 'Edit Quiz', 'rev-quiz' ),

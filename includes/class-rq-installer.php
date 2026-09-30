@@ -8,6 +8,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class RQ_Installer {
+
+	/** Post/term meta holding the demo key of seeded content. */
+	const SEED_KEY = '_rq_seed';
+
+	/** Option listing every demo item ever created, so edited, renamed or deleted ones are never re-created. */
+	const SEEDED_OPTION = 'rq_seeded_items';
+
+	private static function was_seeded( $type, $key ) {
+		$items = get_option( self::SEEDED_OPTION, array() );
+		return is_array( $items ) && in_array( $type . ':' . $key, $items, true );
+	}
+
+	private static function remember( $type, $key ) {
+		$items = get_option( self::SEEDED_OPTION, array() );
+		$items = is_array( $items ) ? $items : array();
+		if ( ! in_array( $type . ':' . $key, $items, true ) ) {
+			$items[] = $type . ':' . $key;
+			update_option( self::SEEDED_OPTION, $items, false );
+		}
+	}
+
+	/** A demo category, found by its demo key (survives renaming) or, for older installs, by slug. */
+	private static function seeded_term( $slug ) {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => RQ_Post_Types::TAXONOMY,
+				'hide_empty' => false,
+				'number'     => 1,
+				'meta_key'   => self::SEED_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value' => $slug, // phpcs:ignore WordPress.DB.SlowDBQuery
+			)
+		);
+		if ( $terms && ! is_wp_error( $terms ) ) {
+			return $terms[0];
+		}
+		$term = get_term_by( 'slug', $slug, RQ_Post_Types::TAXONOMY );
+		if ( $term ) {
+			update_term_meta( $term->term_id, self::SEED_KEY, $slug );
+			self::remember( 'term', $slug );
+		}
+		return $term;
+	}
 	public static function activate() {
 		RQ_Post_Types::register();
 		self::seed();
@@ -47,15 +89,20 @@ class RQ_Installer {
 		$catalog = require RQ_DIR . 'includes/demo-quizzes.php';
 
 		foreach ( $catalog as $slug => $cat ) {
-			$term = get_term_by( 'slug', $slug, RQ_Post_Types::TAXONOMY );
+			$term = self::seeded_term( $slug );
 			if ( $term ) {
 				$term_id = (int) $term->term_id;
+			} elseif ( self::was_seeded( 'term', $slug ) ) {
+				// The site owner deleted this demo category; leave it (and its quizzes) out.
+				continue;
 			} else {
 				$new = wp_insert_term( $cat['name'], RQ_Post_Types::TAXONOMY, array( 'slug' => $slug, 'description' => $cat['description'] ) );
 				if ( is_wp_error( $new ) ) {
 					continue;
 				}
 				$term_id = (int) $new['term_id'];
+				update_term_meta( $term_id, self::SEED_KEY, $slug );
+				self::remember( 'term', $slug );
 				update_term_meta( $term_id, 'rq_icon', $cat['icon'] );
 				update_term_meta( $term_id, 'rq_color', $cat['color'] );
 			}
@@ -101,7 +148,14 @@ class RQ_Installer {
 	 * @return int New post ID, or 0 when the quiz already exists or could not be created.
 	 */
 	private static function insert_quiz( $cat_slug, $term_ids, $quiz ) {
-		if ( get_page_by_path( $quiz['slug'], OBJECT, RQ_Post_Types::POST_TYPE ) ) {
+		if ( self::was_seeded( 'quiz', $quiz['slug'] ) ) {
+			return 0;
+		}
+		// Quizzes seeded before 1.3.0 are recognised by their original slug.
+		$existing = get_page_by_path( $quiz['slug'], OBJECT, RQ_Post_Types::POST_TYPE );
+		if ( $existing ) {
+			update_post_meta( $existing->ID, self::SEED_KEY, $quiz['slug'] );
+			self::remember( 'quiz', $quiz['slug'] );
 			return 0;
 		}
 		$post_id = wp_insert_post(
@@ -117,6 +171,8 @@ class RQ_Installer {
 		if ( ! $post_id || is_wp_error( $post_id ) ) {
 			return 0;
 		}
+		update_post_meta( $post_id, self::SEED_KEY, $quiz['slug'] );
+		self::remember( 'quiz', $quiz['slug'] );
 		if ( isset( $term_ids[ $cat_slug ] ) ) {
 			wp_set_object_terms( $post_id, array( (int) $term_ids[ $cat_slug ] ), RQ_Post_Types::TAXONOMY );
 		}

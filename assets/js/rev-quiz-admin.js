@@ -1,4 +1,4 @@
-/* Rev Quiz question editor: add, remove, reorder questions and options; pick option images. */
+/* REW QUIZZ question editor: add, remove, reorder questions and options; pick option images. */
 jQuery(function ($) {
 	'use strict';
 

@@ -152,7 +152,7 @@ class RQ_Admin {
 
 	public static function box_instructions( $post ) {
 		$value = (string) get_post_meta( $post->ID, RQ_Quiz::META_INSTRUCTIONS, true );
-		echo '<p class="description">' . esc_html__( 'Leave empty to use the default instructions from Rev Quiz > Settings.', 'rev-quiz' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Leave empty to use the default instructions from REW QUIZZ > Settings.', 'rev-quiz' ) . '</p>';
 		wp_editor(
 			$value,
 			'rq_instructions',

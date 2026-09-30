@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name:       Rev Quiz
+ * Plugin Name:       REW QUIZZ
  * Description:       Step-by-step quizzes with categories in the permalink, per-quiz instruction text, a social traffic-source filter (cloaking) and one place to manage AdSense, OneSignal and custom code.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
- * Author:            Rev Quiz
+ * Author:            REW QUIZZ
  * License:           GPL-2.0-or-later
  * Text Domain:       rev-quiz
  */
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RQ_VERSION', '1.2.0' );
+define( 'RQ_VERSION', '1.3.0' );
 define( 'RQ_FILE', __FILE__ );
 define( 'RQ_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RQ_URL', plugin_dir_url( __FILE__ ) );
